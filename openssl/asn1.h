@@ -67,7 +67,7 @@
 #include "stack.h"
 #include "safestack.h"
 
-#include "symhacks.h>
+#include "symhacks.h"
 
 #include "ossl_typ.h"
 #ifndef OPENSSL_NO_DEPRECATED
