@@ -117,21 +117,24 @@ SSLConnection *SSLconnect;
 {
     if(!(hostname && portNumber))
         return NO;
-    struct sockaddr_in server;
-	struct hostent *hp;
-    if( (hp = gethostbyname(hostname.UTF8String)) == NULL)
-       return NO;
+    struct addrinfo hints;
+    struct addrinfo *result = NULL;
+    memset(&hints,0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = IPPROTO_TCP;
+    int rc = getaddrinfo(hostname.UTF8String, [[NSString stringWithFormat:@"%d",portNumber] UTF8String], &hints, &result);
+    if(rc != 0)
+        return NO;
     
     if( (sckfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        freeaddrinfo(result);
 		return NO;
-    
-    server.sin_family = AF_INET;
-	server.sin_port = htons(portNumber);
-	server.sin_addr = *((struct in_addr *)hp->h_addr);
-	memset(&(server.sin_zero), 0, 8);
-    
+    }
 	fcntl(sckfd, F_SETFL, O_NONBLOCK);
-	connect(sckfd, (struct sockaddr *)&server, sizeof(struct sockaddr));
+	connect(sckfd, result->ai_addr, sizeof(struct sockaddr)); 
+    freeaddrinfo(result);
     
     if(isSecureEnabled)
     {
